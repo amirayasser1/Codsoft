@@ -1,0 +1,83 @@
+import PySimpleGUI as sg
+import csv
+
+sg.theme('DarkPurple4')   # Add color
+sg.set_options(font='Arial 16')
+
+# All the stuff inside your window.
+layout = [  [sg.Text('Enter Name'), sg.Push(), sg.InputText(key='-name-')],
+            [sg.Text('Enter Phone Number'), sg.Push(), sg.InputText(key='-phone-')],
+            [sg.Text('Enter Email'), sg.Push(), sg.InputText(key='-email-')],
+            [sg.Text('Enter Address'), sg.Push(), sg.InputText(key='-address-')],
+            [sg.Button('Save'), sg.Button('Cancel')],
+            [sg.Text("Search by name"), sg.Push(), sg.InputText(key='-searchText-')],
+            [sg.Button('Search')],[sg.Button('View list'),sg.Button('Update'),sg.Button('Delete')],
+            [sg.Text(key='-searchOutput-',)]
+        ]
+
+
+# Create the Window
+window = sg.Window('Contact Book', layout, icon='favicon.ico')
+# Event Loop to process "events" and get the "values" of the inputs
+while True:
+    event, values = window.read()
+    if event == sg.WIN_CLOSED or event == 'Cancel': 
+        break
+    name = values['-name-']
+    phone = values['-phone-']
+    email = values['-email-']
+    address = values['-address-']
+    info = [name, phone,  email,  address]
+    if event == 'Save':
+        with open('info.csv', 'a', newline="") as w:
+            cw = csv.writer(w)
+            cw.writerow(info)
+        window['-name-'].update('')
+        window['-phone-'].update('')
+        window['-email-'].update('')
+        window['-address-'].update('')
+
+    searchText = values['-searchText-']
+    if event == 'Search':
+        with open('info.csv', 'r') as r:
+            cr = csv.reader(r)
+            for i in cr:
+                if i[0] == searchText:
+                    window['-searchOutput-'].update(f" Name: {i[0]}\nPhone Number: {i[1]}\nEmail: {i[2]}\nAddress: {i[3]}")
+   # elif event == 'Delete': 
+    if event == 'Delete':
+       with open('info.csv', 'r') as r:
+           cr = csv.reader(r)
+           rows = list(cr)
+       with open('info.csv', 'w', newline='') as w:
+           cw = csv.writer(w)
+           for row in rows:
+               if row[0] != searchText:
+                   cw.writerow(row)
+       window['-searchOutput-'].update('Contact deleted successfully.')
+
+
+    
+    if event == 'Update':
+       with open('info.csv', 'r') as r:
+           cr = csv.reader(r)
+           rows = list(cr)
+       with open('info.csv', 'w', newline='') as w:
+           cw = csv.writer(w)
+           for row in rows:
+               if row[0] == searchText:
+                   row[1] = values['-phone-']
+                   row[2] = values['-email-']
+                   row[3] = values['-address-']
+               cw.writerow(row)
+       window['-searchOutput-'].update('Contact updated successfully.')
+
+    if event == 'View list':
+      with open('info.csv', 'r') as r:
+          cr = csv.reader(r)
+          rows = ''
+          for i in cr:
+              rows += f"Name: {i[0]}\nPhone Number: {i[1]}\n{'-' * 20}\n"
+          window['-searchOutput-'].update(rows)
+  
+window.close()
